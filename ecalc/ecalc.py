@@ -4,6 +4,9 @@ import customtkinter as ctk
 import ast
 from math import *
 
+# TODO: Notification Toast about copying content to clipboard
+# TODO: Make executable
+
 class ResultFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -92,9 +95,9 @@ class Calculator(ctk.CTk):
         self.lHistoryDec = Calculator._addHistoryLabel(self, 'Decimal History', 2, 1)
         self.lHistoryHex = Calculator._addHistoryLabel(self, 'Hexadecimal History', 2, 2)
         # History textBoxes
-        self.bExpressionHistory = Calculator._addHistoryTextBox(self, 3, 0)
-        self.bHistoryDec = Calculator._addHistoryTextBox(self, 3, 1)
-        self.bHistoryHex = Calculator._addHistoryTextBox(self, 3, 2)
+        self.bExpressionHistory = Calculator._addHistoryTextBox(self, self._onResultHistoryKeyPressed, 3, 0)
+        self.bHistoryDec = Calculator._addHistoryTextBox(self, self._onResultHistoryKeyPressed, 3, 1)
+        self.bHistoryHex = Calculator._addHistoryTextBox(self, self._onResultHistoryKeyPressed, 3, 2)
         # Dummy Label for Spacer at bottom
         self.lSpacer = Calculator._addHistoryLabel(self, '', 4, 0, True)
         # TODO: Synced scroll of the three results window
@@ -110,33 +113,46 @@ class Calculator(ctk.CTk):
         return widget
 
     @classmethod
-    def _addHistoryTextBox(cls, master, row, col):
+    def _addHistoryTextBox(cls, master, command, row, col):
         widget = ctk.CTkTextbox(master=master, font=('Calibry', 16), spacing1=2, spacing3=2)
         widget.grid(row=row, column=col, padx=8, pady=0, sticky="nsew")
+        widget.bind('<KeyPress>', command)
+        widget.bind('<KeyRelease>', command)
         return widget
+
+    def _onResultHistoryKeyPressed(self, keypressed):
+        if keypressed.keysym == 'Return':
+            pass
+            # TODO: preserve the content of the historybox, and save copy the selection to clipboard...
+            # Can be maybe by disabling it when line selected, and then enabling when focus lost...
+
+
+    def _onChangeInput(self, keypressed):
+        if keypressed.keysym == 'Return':
+            self._addToHistory()
+        else:
+            self._updateResults()
 
     def _getInputValue(self):
         return self.bInput.get()
 
-    def _onChangeInput(self, keypressed):
-        if keypressed.keysym == 'Return':
-            self.bExpressionHistory.tag_config('justified', justify=ctk.RIGHT)
-            self.bExpressionHistory.insert(0.0, self._getInputValue() + "\n", 'justified') 
-            self.bHistoryDec.tag_config('justified', justify=ctk.RIGHT)
-            self.bHistoryDec.insert(0.0, self.frame.getDec() + "\n", 'justified') 
-            self.bHistoryHex.tag_config('justified', justify=ctk.RIGHT)
-            self.bHistoryHex.insert(0.0, self.frame.getHex() + "\n", 'justified') 
-            self.bInput.delete(0, 'end')
-        else:
-            self._updateResults()
+    def _addToHistory(self):
+        self.bExpressionHistory.tag_config('justified', justify=ctk.RIGHT)
+        self.bExpressionHistory.insert(0.0, self._getInputValue() + "\n", 'justified') 
+        self.bHistoryDec.tag_config('justified', justify=ctk.RIGHT)
+        self.bHistoryDec.insert(0.0, self.frame.getDec() + "\n", 'justified') 
+        self.bHistoryHex.tag_config('justified', justify=ctk.RIGHT)
+        self.bHistoryHex.insert(0.0, self.frame.getHex() + "\n", 'justified') 
+        self.bInput.delete(0, 'end')
 
     def _updateResults(self):
-            formula = self._getInputValue().replace('^', '**')
-            try:
-                result = eval(compile(ast.parse(formula, mode='eval'), filename='', mode='eval'))
-            except:
-                result = 'error'
-            self.frame.writeResults(result)
+        ''' This is separated in case a future degrees/radians switch should call it separately '''
+        formula = self._getInputValue().replace('^', '**')
+        try:
+            result = eval(compile(ast.parse(formula, mode='eval'), filename='', mode='eval'))
+        except:
+            result = 'error'
+        self.frame.writeResults(result)
 
 if __name__ == '__main__':
     Calculator().start()
