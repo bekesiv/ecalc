@@ -40,6 +40,7 @@ class Calculator(ctk.CTk):
         self.lResultHex.grid(row=1, column=0, padx=8, pady=4, sticky="ew")
         # Hexadecimal TextBox
         self.bResultHex = ctk.CTkEntry(master=self.frame, width=400, font=('Calibry', 20), justify='right', state=ctk.DISABLED)
+        self.bResultHex.bind('<Button>', self.onClickResultHex)
         self.bResultHex.grid(row=1, column=1, padx=0, pady=4, sticky="ew")
         # Expression History Caption
         self.lExpressionHistory = ctk.CTkLabel(master=self, text='Expression History', font=('Calibry', 16), anchor=ctk.W)
@@ -80,14 +81,25 @@ class Calculator(ctk.CTk):
             self.updateResults()
 
     def onClickResultDec(self, dummy):
-        Calculator.clearDisabledEntry(self.bResultDec)        
+        self.copyToClipboard(self.bResultDec)
+
+    def onClickResultHex(self, dummy):
+        self.copyToClipboard(self.bResultHex)
+
+    def copyToClipboard(self, widget):
+        self.clipboard_clear()
+        self.clipboard_append(widget.get())
+        self.update()
+        origColor = ('#F9F9FA', '#343638')
+        widget.configure(fg_color = 'darkblue')
+        widget.after(200, lambda: widget.configure(fg_color = origColor))
 
     @classmethod
-    def updateDisabledEntry(cls, entry, text):
-        entry.configure(state=ctk.NORMAL)
-        entry.delete(0, 'end')
-        entry.insert(ctk.END, text)
-        entry.configure(state=ctk.DISABLED)
+    def updateDisabledEntry(cls, widget, text):
+        widget.configure(state=ctk.NORMAL)
+        widget.delete(0, 'end')
+        widget.insert(ctk.END, text)
+        widget.configure(state=ctk.DISABLED)
 
     def updateResults(self):
             formula = self.bInput.get().replace('^', '**')
