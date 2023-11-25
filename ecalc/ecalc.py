@@ -110,7 +110,7 @@ class HistoryFrame(ctk.CTkFrame):
         widget = ctk.CTkTextbox(master=parent, font=('Calibry', FONT_SIZE_HISTORY), 
                                 spacing1=2, spacing3=2, activate_scrollbars=False)
         widget.grid(row=row, column=col, padx=(8, 4), pady=(0,8), sticky="nsew")
-        widget.bind('<KeyPress>', lambda event: parent._onKeyPress(widget))
+        widget.bind('<KeyPress>', lambda event: parent._onKeyPress(widget, event))
         widget.bind('<KeyRelease>', lambda event: parent._onKeyRelease(widget))
         return widget
 
@@ -130,12 +130,17 @@ class HistoryFrame(ctk.CTkFrame):
         self.scrollHistory.set(*args)
         self._onScrollBar('moveto', args[0])
 
-    def _onKeyPress(self, widget):
-        self.master.copyToClipboard(widget.get(ctk.SEL_FIRST, ctk.SEL_LAST))
+    def _onKeyPress(self, widget, event):
+        if event.keysym == 'Return':
+            try:
+                self.master.copyToClipboard(widget.get(ctk.SEL_FIRST, ctk.SEL_LAST))
+            except:
+                pass
         widget.configure(state=ctk.DISABLED)
 
     def _onKeyRelease(self, widget):
-        widget.configure(state=ctk.NORMAL)
+        # This make sure we never enable widget before disabling it...
+        widget.after(50, lambda: widget.configure(state=ctk.NORMAL))
 
     def addToAllHistories(self, result, decval, hexval):
         HistoryFrame._addToHistory(self.textboxExpression, result)
