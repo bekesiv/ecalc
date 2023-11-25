@@ -114,7 +114,7 @@ class HistoryFrame(ctk.CTkFrame):
     def _addTextBox(cls, master, command, row, col):
         widget = ctk.CTkTextbox(master=master, font=('Calibry', FONT_SIZE_HISTORY), 
                                 spacing1=2, spacing3=2, activate_scrollbars=False)
-        widget.grid(row=row, column=col, padx=4, pady=(0,4), sticky="nsew")
+        widget.grid(row=row, column=col, padx=(8, 4), pady=(0,8), sticky="nsew")
         widget.bind('<KeyPress>', command)
         widget.bind('<KeyRelease>', command)
         return widget
@@ -174,7 +174,7 @@ class Calculator(ctk.CTk):
         self.bInput = ctk.CTkEntry(master=self, width=800, font=('Calibry', FONT_SIZE_RESULT), 
                                    placeholder_text='Type Expression Here', justify='right')
         self.bInput.bind('<KeyRelease>', self._onChangeInput)
-        self.bInput.grid(row=0, column=0, ipadx=8, ipady=4, padx=8, pady=4, sticky="ew")
+        self.bInput.grid(row=0, column=0, ipadx=8, ipady=4, padx=8, pady=(8, 4), sticky="ew")
         self.bInput.after(50, self.bInput.focus_set)
         # Result and History are organized into frames
         self.frameResult = ResultFrame(self)
