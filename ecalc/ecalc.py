@@ -4,8 +4,8 @@ import customtkinter as ctk
 import ast
 from math import *
 
-# TODO: Notification Toast about copying content to clipboard
-
+CONFIGURATION_FILENAME = 'ecalc.conf'
+DEFAULT_POSITION = '600x340+300+600'
 FONT_SIZE_RESULT = 20
 FONT_SIZE_HISTORY = 16
 FONT_SIZE_LABELS = 14
@@ -44,12 +44,16 @@ class ResultFrame(ctk.CTkFrame):
         widget.configure(state=ctk.DISABLED)
 
     def _copyToClipboard(self, widget):
-        self.master.clipboard_clear()
-        self.master.clipboard_append(widget.get())
-        self.master.update()
-        origColor = ('#F9F9FA', '#343638')
-        widget.configure(fg_color = 'darkblue')
-        widget.after(200, lambda: widget.configure(fg_color = origColor))
+        content = widget.get()
+        if content:
+            self.master.clipboard_clear()
+            self.master.clipboard_append(content)
+            self.master.update()
+            origColor = ('#F9F9FA', '#343638')
+            widget.configure(fg_color = 'darkblue')
+            widget.after(200, lambda: widget.configure(fg_color = origColor))
+            self.master.showNotificationToast()
+
 
     def _onClickDec(self, dummy):
         self._copyToClipboard(self.textboxDex)
@@ -107,7 +111,7 @@ class HistoryFrame(ctk.CTkFrame):
     def _addLabel(cls, master, text, row, col, spacer=False):
         widget = ctk.CTkLabel(master=master, text=text, height=6 if spacer else 20, 
                               font=('Calibry', 4 if spacer else FONT_SIZE_LABELS), anchor=ctk.W)
-        widget.grid(row=row, column=col, padx=8, pady=(4,2), sticky="ew")
+        widget.grid(row=row, column=col, padx=12, pady=(4,2), sticky="ew")
         return widget
 
     @classmethod
@@ -163,12 +167,11 @@ class Calculator(ctk.CTk):
         ctk.set_default_color_theme('blue')
         # Main Window
         self.title('eCalc')
-        self.geometry('600x340')
+        self.setGeometry()
         self.minsize(600, 300)
         self.grid_rowconfigure((0, 1), weight=0)
         self.grid_rowconfigure((2), weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.bind('<Escape>', lambda e, w=self: w.destroy())
         self.after(201, lambda :self.iconbitmap('resources/Wineass-Ios7-Redesign-Calculator.ico'))
         # Input TextBox
         self.bInput = ctk.CTkEntry(master=self, width=800, font=('Calibry', FONT_SIZE_RESULT), 
@@ -179,9 +182,27 @@ class Calculator(ctk.CTk):
         # Result and History are organized into frames
         self.frameResult = ResultFrame(self)
         self.frameHistory = HistoryFrame(self)
+        self.bind('<Escape>', lambda e, w=self: w.destroy())
+        self.bind("<Configure>", self._saveWindowPosition)
+        # Toast Notification
+        self.notificationToast = ctk.CTkEntry(master=self, width=220, height=40, font=('Calibry', 20), 
+                                              placeholder_text='Copied to Clipboard', justify='center')
+        self.notificationToast.configure(state=ctk.DISABLED)
 
     def start(self):
         self.mainloop()
+
+    def setGeometry(self):
+        try:
+            with open(CONFIGURATION_FILENAME, "r") as conf:
+                self.geometry(conf.readlines()[0])
+        except:
+                self.geometry(DEFAULT_POSITION)
+
+
+    def _saveWindowPosition(self, event):
+        with open(CONFIGURATION_FILENAME, "w") as conf:
+            conf.write(self.geometry())
 
     def getInputValue(self):
         return self.bInput.get()
@@ -197,6 +218,11 @@ class Calculator(ctk.CTk):
             self.clearInput()
         else:
             self.frameResult.updateResults(self.getInputValue().replace('^', '**'))
+
+    def showNotificationToast(self):
+        centerx = int((self.winfo_width() - self.notificationToast.winfo_reqwidth()) / 2)
+        self.notificationToast.place(x=centerx, y=80)
+        self.notificationToast.after(1000, self.notificationToast.place_forget)
 
 if __name__ == '__main__':
     Calculator().start()
