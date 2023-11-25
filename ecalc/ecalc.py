@@ -3,8 +3,9 @@
 import customtkinter as ctk
 import ast
 from math import *
+import os
 
-CONFIGURATION_FILENAME = 'ecalc.conf'
+CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
 DEFAULT_POSITION = '600x340+300+600'
 FONT_SIZE_RESULT = 20
 FONT_SIZE_HISTORY = 16
@@ -19,20 +20,20 @@ class ResultFrame(ctk.CTkFrame):
         self.labelDec = ResultFrame._addLabel(self, 'Decimal', 0, 0)
         self.labelHex = ResultFrame._addLabel(self, 'Hexadecimal', 1, 0)
         # Result TextBoxes
-        self.textboxDex = ResultFrame.addTextBox (self, self._onClickDec, 0, 1)
-        self.textboxHex = ResultFrame.addTextBox (self, self._onClickHex, 1, 1)
+        self.textboxDex = ResultFrame.addTextBox (self, 0, 1)
+        self.textboxHex = ResultFrame.addTextBox (self, 1, 1)
 
     @classmethod
-    def _addLabel(cls, master, text, row, col):
-        widget = ctk.CTkLabel(master=master, text=text, font=('Calibry', FONT_SIZE_LABELS+2), anchor=ctk.W)
+    def _addLabel(cls, parent, text, row, col):
+        widget = ctk.CTkLabel(master=parent, text=text, font=('Calibry', FONT_SIZE_LABELS+2), anchor=ctk.W)
         widget.grid(row=row, column=col, padx=8, pady=4, sticky="ew")
         return widget
 
     @classmethod
-    def addTextBox(cls, master, command, row, col):
-        widget = ctk.CTkEntry(master=master, width=400, font=('Calibry', FONT_SIZE_RESULT), 
+    def addTextBox(cls, parent, row, col):
+        widget = ctk.CTkEntry(master=parent, width=400, font=('Calibry', FONT_SIZE_RESULT), 
                               justify='right', state=ctk.DISABLED)
-        widget.bind('<Button>', command)
+        widget.bind('<Button>', lambda button: parent._copyToClipboard(widget, button))
         widget.grid(row=row, column=col, padx=0, pady=4, sticky="ew")
         return widget
 
@@ -43,23 +44,13 @@ class ResultFrame(ctk.CTkFrame):
         widget.insert(ctk.END, text)
         widget.configure(state=ctk.DISABLED)
 
-    def _copyToClipboard(self, widget):
+    def _copyToClipboard(self, widget, button):
         content = widget.get()
-        if content:
-            self.master.clipboard_clear()
-            self.master.clipboard_append(content)
-            self.master.update()
+        if button.num == 1 and content:
+            self.master.copyToClipboard(content)
             origColor = ('#F9F9FA', '#343638')
             widget.configure(fg_color = 'darkblue')
             widget.after(200, lambda: widget.configure(fg_color = origColor))
-            self.master.showNotificationToast()
-
-
-    def _onClickDec(self, dummy):
-        self._copyToClipboard(self.textboxDex)
-
-    def _onClickHex(self, dummy):
-        self._copyToClipboard(self.textboxHex)
 
     def getDec(self):
         return self.textboxDex.get()
@@ -99,29 +90,34 @@ class HistoryFrame(ctk.CTkFrame):
         self.scrollHistory = ctk.CTkScrollbar(master=self, command=self._onScrollBar)
         self.scrollHistory.grid(row=1, column=3, padx=(0,4), pady=0, sticky="ns")
         # History textBoxes
-        self.textboxExpression = HistoryFrame._addTextBox(self, self._onResultKeyPressed, 1, 0)
-        self.textboxDec = HistoryFrame._addTextBox(self, self._onDecKeyPressed, 1, 1)
-        self.textboxHex = HistoryFrame._addTextBox(self, self._onHexKeyPressed, 1, 2)
+        self.textboxExpression = HistoryFrame._addTextBox(self, 1, 0)
+        self.textboxDec = HistoryFrame._addTextBox(self, 1, 1)
+        self.textboxHex = HistoryFrame._addTextBox(self, 1, 2)
         # Due to the cross-independence, we can set this only aftetr all three textboxes created
         self.textboxExpression.configure(yscrollcommand=self._onTextScroll)
         self.textboxDec.configure(yscrollcommand=self._onTextScroll)
         self.textboxHex.configure(yscrollcommand=self._onTextScroll)
 
     @classmethod
-    def _addLabel(cls, master, text, row, col, spacer=False):
-        widget = ctk.CTkLabel(master=master, text=text, height=6 if spacer else 20, 
+    def _addLabel(cls, parent, text, row, col, spacer=False):
+        widget = ctk.CTkLabel(master=parent, text=text, height=6 if spacer else 20, 
                               font=('Calibry', 4 if spacer else FONT_SIZE_LABELS), anchor=ctk.W)
         widget.grid(row=row, column=col, padx=12, pady=(4,2), sticky="ew")
         return widget
 
     @classmethod
-    def _addTextBox(cls, master, command, row, col):
-        widget = ctk.CTkTextbox(master=master, font=('Calibry', FONT_SIZE_HISTORY), 
+    def _addTextBox(cls, parent, row, col):
+        widget = ctk.CTkTextbox(master=parent, font=('Calibry', FONT_SIZE_HISTORY), 
                                 spacing1=2, spacing3=2, activate_scrollbars=False)
         widget.grid(row=row, column=col, padx=(8, 4), pady=(0,8), sticky="nsew")
-        widget.bind('<KeyPress>', command)
-        widget.bind('<KeyRelease>', command)
+        widget.bind('<KeyPress>', lambda event: parent._onKeyPress(widget))
+        widget.bind('<KeyRelease>', lambda event: parent._onKeyRelease(widget))
         return widget
+
+    @classmethod
+    def _addToHistory(cls, widget, text ):
+        widget.tag_config('justified', justify=ctk.RIGHT)
+        widget.insert(0.0, text + "\n", 'justified')
 
     def _onScrollBar(self, *args):
         '''Scrolls both text widgets when the scrollbar is moved'''
@@ -134,24 +130,12 @@ class HistoryFrame(ctk.CTkFrame):
         self.scrollHistory.set(*args)
         self._onScrollBar('moveto', args[0])
 
-    # TODO: preserve the content of the historybox, and save copy the selection to clipboard...
-    # Can be maybe by disabling it when line selected, and then enabling when focus lost...
-    def _onResultKeyPressed(self, keypressed):
-        if keypressed.keysym == 'Return':
-            pass
+    def _onKeyPress(self, widget):
+        self.master.copyToClipboard(widget.get(ctk.SEL_FIRST, ctk.SEL_LAST))
+        widget.configure(state=ctk.DISABLED)
 
-    def _onDecKeyPressed(self, keypressed):
-        if keypressed.keysym == 'Return':
-            pass
-
-    def _onHexKeyPressed(self, keypressed):
-        if keypressed.keysym == 'Return':
-            pass
-
-    @classmethod
-    def _addToHistory(cls, widget, text ):
-        widget.tag_config('justified', justify=ctk.RIGHT)
-        widget.insert(0.0, text + "\n", 'justified')
+    def _onKeyRelease(self, widget):
+        widget.configure(state=ctk.NORMAL)
 
     def addToAllHistories(self, result, decval, hexval):
         HistoryFrame._addToHistory(self.textboxExpression, result)
@@ -172,18 +156,19 @@ class Calculator(ctk.CTk):
         self.grid_rowconfigure((0, 1), weight=0)
         self.grid_rowconfigure((2), weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.after(201, lambda :self.iconbitmap('resources/Wineass-Ios7-Redesign-Calculator.ico'))
+        self.after(201, lambda: self.iconbitmap('resources/Wineass-Ios7-Redesign-Calculator.ico'))
         # Input TextBox
         self.bInput = ctk.CTkEntry(master=self, width=800, font=('Calibry', FONT_SIZE_RESULT), 
                                    placeholder_text='Type Expression Here', justify='right')
         self.bInput.bind('<KeyRelease>', self._onChangeInput)
+        # bInput is destroyed when main windows is destroyed, this is when we save geometry data
+        self.bInput.bind("<Destroy>", self._saveWindowPosition)
         self.bInput.grid(row=0, column=0, ipadx=8, ipady=4, padx=8, pady=(8, 4), sticky="ew")
         self.bInput.after(50, self.bInput.focus_set)
         # Result and History are organized into frames
         self.frameResult = ResultFrame(self)
         self.frameHistory = HistoryFrame(self)
         self.bind('<Escape>', lambda e, w=self: w.destroy())
-        self.bind("<Configure>", self._saveWindowPosition)
         # Toast Notification
         self.notificationToast = ctk.CTkEntry(master=self, width=220, height=40, font=('Calibry', 20), 
                                               placeholder_text='Copied to Clipboard', justify='center')
@@ -191,24 +176,6 @@ class Calculator(ctk.CTk):
 
     def start(self):
         self.mainloop()
-
-    def setGeometry(self):
-        try:
-            with open(CONFIGURATION_FILENAME, "r") as conf:
-                self.geometry(conf.readlines()[0])
-        except:
-                self.geometry(DEFAULT_POSITION)
-
-
-    def _saveWindowPosition(self, event):
-        with open(CONFIGURATION_FILENAME, "w") as conf:
-            conf.write(self.geometry())
-
-    def getInputValue(self):
-        return self.bInput.get()
-
-    def clearInput(self):
-        self.bInput.delete(0, 'end')
 
     def _onChangeInput(self, keypressed):
         if keypressed.keysym == 'Return':
@@ -219,10 +186,33 @@ class Calculator(ctk.CTk):
         else:
             self.frameResult.updateResults(self.getInputValue().replace('^', '**'))
 
+    def _saveWindowPosition(self, event):
+        with open(CONFIGURATION_FILENAME, "w") as conf:
+            conf.write(self.geometry())
+
+    def setGeometry(self):
+        try:
+            with open(CONFIGURATION_FILENAME, "r") as conf:
+                self.geometry(conf.readlines()[0])
+        except:
+                self.geometry(DEFAULT_POSITION)
+
+    def getInputValue(self):
+        return self.bInput.get()
+
+    def clearInput(self):
+        self.bInput.delete(0, 'end')
+
+    def copyToClipboard(self, content):
+        self.clipboard_clear()
+        self.clipboard_append(content)
+        self.update()
+        self.showNotificationToast()
+
     def showNotificationToast(self):
         centerx = int((self.winfo_width() - self.notificationToast.winfo_reqwidth()) / 2)
         self.notificationToast.place(x=centerx, y=80)
-        self.notificationToast.after(1000, self.notificationToast.place_forget)
+        self.notificationToast.after(800, self.notificationToast.place_forget)
 
 if __name__ == '__main__':
     Calculator().start()
