@@ -61,16 +61,8 @@ class ResultFrame(ctk.CTkFrame):
     def getHex(self):
         return self.textboxHex.get()
 
-    def writeResults(self, formula):
-        try:
-            result = eval(compile(ast.parse(formula, mode='eval'), filename='', mode='eval'))
-        except:
-            result = 'error'
-        ResultFrame._updateDisabledEntry(self.textboxDex, result)
-        try:
-            hexValue = hex(int(result))
-        except:
-            hexValue = 'error'
+    def writeResults(self, decValue, hexValue):
+        ResultFrame._updateDisabledEntry(self.textboxDex, decValue)
         ResultFrame._updateDisabledEntry(self.textboxHex, hexValue)
 
 
@@ -162,7 +154,7 @@ class Calculator(ctk.CTk):
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
-        self.after(201, lambda: self.iconbitmap('resources/Wineass-Ios7-Redesign-Calculator.ico'))
+        self.after(201, lambda: self.iconbitmap('Wineass-Ios7-Redesign-Calculator.ico'))
         # Switch
         self.switchDRValue = ctk.StringVar(value=DEGREES)
         self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self._onUpdateSwitch, 
@@ -203,8 +195,20 @@ class Calculator(ctk.CTk):
             self._onChangeInput()
 
     def _onChangeInput(self):
-        result = self.calculate(self.getInputValue())
-        self.frameResult.writeResults(result)
+        decValue = ''
+        hexValue = ''
+        formula = self.calculate(self.getInputValue())
+        if formula:
+            try:
+                decValue = eval(compile(ast.parse(formula, mode='eval'), filename='', mode='eval'))
+            except:
+                decValue = 'error'
+            # decvalue can be good and hexvalue can be error separately
+            try:
+                hexValue = hex(int(decValue))
+            except:
+                hexValue = 'error'
+        self.frameResult.writeResults(decValue, hexValue)
 
     def _saveWindowPosition(self, event):
         with open(CONFIGURATION_FILENAME, "w") as conf:
