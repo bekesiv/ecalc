@@ -4,17 +4,20 @@ import customtkinter as ctk
 import ast
 from math import *
 import os
+import re
 
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
 DEFAULT_POSITION = '600x340+300+600'
 FONT_SIZE_RESULT = 20
 FONT_SIZE_HISTORY = 16
 FONT_SIZE_LABELS = 14
+DEGREES='Degrees'
+RADIANS='Radians'
 
 class ResultFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.grid(row=1, column=0, padx=8, pady=4, sticky="ew")
+        self.grid(row=1, column=0, columnspan=2, padx=8, pady=4, sticky="ew")
         self.grid_columnconfigure(1, weight=1)
         # Result Captions
         self.labelDec = ResultFrame._addLabel(self, 'Decimal', 0, 0)
@@ -34,7 +37,7 @@ class ResultFrame(ctk.CTkFrame):
         widget = ctk.CTkEntry(master=parent, width=400, font=('Calibry', FONT_SIZE_RESULT), 
                               justify='right', state=ctk.DISABLED)
         widget.bind('<Button>', lambda button: parent._copyToClipboard(widget, button))
-        widget.grid(row=row, column=col, padx=0, pady=4, sticky="ew")
+        widget.grid(row=row, column=col, padx=(12, 4), pady=4, sticky="ew")
         return widget
 
     @classmethod
@@ -58,17 +61,14 @@ class ResultFrame(ctk.CTkFrame):
     def getHex(self):
         return self.textboxHex.get()
 
-    def updateResults(self, formula):
+    def writeResults(self, formula):
         try:
             result = eval(compile(ast.parse(formula, mode='eval'), filename='', mode='eval'))
         except:
             result = 'error'
-        self.writeResults(result)
-
-    def writeResults(self, value):
-        ResultFrame._updateDisabledEntry(self.textboxDex, value)
+        ResultFrame._updateDisabledEntry(self.textboxDex, result)
         try:
-            hexValue = hex(int(value))
+            hexValue = hex(int(result))
         except:
             hexValue = 'error'
         ResultFrame._updateDisabledEntry(self.textboxHex, hexValue)
@@ -77,7 +77,7 @@ class ResultFrame(ctk.CTkFrame):
 class HistoryFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.grid(row=2, column=0, padx=8, pady=(4,12), sticky="nsew")
+        self.grid(row=2, column=0, columnspan=2, padx=8, pady=(4,12), sticky="nsew")
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=2)
         self.grid_columnconfigure((1, 2), weight=1)
@@ -159,16 +159,23 @@ class Calculator(ctk.CTk):
         self.setGeometry()
         self.minsize(600, 300)
         self.grid_rowconfigure((0, 1), weight=0)
-        self.grid_rowconfigure((2), weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
         self.after(201, lambda: self.iconbitmap('resources/Wineass-Ios7-Redesign-Calculator.ico'))
+        # Switch
+        self.switchDRValue = ctk.StringVar(value=DEGREES)
+        self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self._onUpdateSwitch, 
+                                    variable=self.switchDRValue, onvalue=RADIANS, offvalue=DEGREES)
+        self.switchDR.grid(padx=(12, 4), pady=4)
+        self.switchDR.deselect()
         # Input TextBox
-        self.bInput = ctk.CTkEntry(master=self, width=800, font=('Calibry', FONT_SIZE_RESULT), 
-                                   placeholder_text='Type Expression Here', justify='right')
-        self.bInput.bind('<KeyRelease>', self._onChangeInput)
+        self.bInput = ctk.CTkEntry(master=self, font=('Calibry', FONT_SIZE_RESULT), justify='right', 
+                                   placeholder_text='Type Expression Here')
+        self.bInput.bind('<KeyRelease>', self._onKey)
         # bInput is destroyed when main windows is destroyed, this is when we save geometry data
         self.bInput.bind("<Destroy>", self._saveWindowPosition)
-        self.bInput.grid(row=0, column=0, ipadx=8, ipady=4, padx=8, pady=(8, 4), sticky="ew")
+        self.bInput.grid(row=0, column=1, ipadx=8, ipady=4, padx=12, pady=(8, 4), sticky="ew")
         self.bInput.after(50, self.bInput.focus_set)
         # Result and History are organized into frames
         self.frameResult = ResultFrame(self)
@@ -182,14 +189,22 @@ class Calculator(ctk.CTk):
     def start(self):
         self.mainloop()
 
-    def _onChangeInput(self, keypressed):
+    def _onUpdateSwitch(self):
+        self.switchDR.configure(text=self.switchDRValue.get())
+        self._onChangeInput()
+
+    def _onKey(self, keypressed):
         if keypressed.keysym == 'Return':
             self.frameHistory.addToAllHistories(self.getInputValue(), 
                                                 self.frameResult.getDec(), 
                                                 self.frameResult.getHex())
             self.clearInput()
         else:
-            self.frameResult.updateResults(self.getInputValue().replace('^', '**'))
+            self._onChangeInput()
+
+    def _onChangeInput(self):
+        result = self.calculate(self.getInputValue())
+        self.frameResult.writeResults(result)
 
     def _saveWindowPosition(self, event):
         with open(CONFIGURATION_FILENAME, "w") as conf:
@@ -218,6 +233,14 @@ class Calculator(ctk.CTk):
         centerx = int((self.winfo_width() - self.notificationToast.winfo_reqwidth()) / 2)
         self.notificationToast.place(x=centerx, y=80)
         self.notificationToast.after(800, self.notificationToast.place_forget)
+
+    def calculate(self, formula):
+        retVal = formula.replace('^', '**')
+        if self.switchDRValue.get() == DEGREES:
+            pattern = re.compile(r'(sin|cos|tan)\(([^)]+)\)')
+            replacement = r'\1(radians(\2))'
+            retVal = pattern.sub(replacement, retVal)
+        return retVal
 
 if __name__ == '__main__':
     Calculator().start()
