@@ -154,7 +154,7 @@ class Calculator(ctk.CTk):
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
-        self.after(201, lambda: self.iconbitmap('Wineass-Ios7-Redesign-Calculator.ico'))
+        self.after(201, lambda: self.iconbitmap('_internal/Wineass-Ios7-Redesign-Calculator.ico'))
         # Switch
         self.switchDRValue = ctk.StringVar(value=DEGREES)
         self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self._onUpdateSwitch, 
