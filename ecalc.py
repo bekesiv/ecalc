@@ -185,8 +185,10 @@ class Calculator(ctk.CTk):
                                           dropdown_font=('Calibry', 20), justify='right', hover=True)
         self.combobox_var.set("option 2")
         self.comboInput.grid(row=0, column=2, padx=4, pady=4, sticky="ew")
-        self.update()
-        print(self.comboInput.winfo_width())
+        self.comboInput.bind('<KeyRelease>', self._onKey)
+
+        # self.update()
+        # print(self.comboInput.winfo_width())
 
     def combobox_callback(self, choice):
         print("combobox dropdown clicked:", choice)
@@ -235,7 +237,7 @@ class Calculator(ctk.CTk):
                 self.geometry(DEFAULT_POSITION)
 
     def getInputValue(self):
-        return self.bInput.get()
+        return self.comboInput.get()
 
     def clearInput(self):
         self.bInput.delete(0, 'end')
