@@ -7,7 +7,7 @@ import os
 import re
 
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
-DEFAULT_POSITION = '600x340+300+600'
+DEFAULT_POSITION = '1000x340+300+600'
 FONT_SIZE_RESULT = 20
 FONT_SIZE_HISTORY = 16
 FONT_SIZE_LABELS = 14
@@ -149,17 +149,18 @@ class Calculator(ctk.CTk):
         # Main Window
         self.title('eCalc')
         self.setGeometry()
-        self.minsize(600, 300)
+        self.minsize(1000, 300)
         self.grid_rowconfigure((0, 1), weight=0)
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
         self.after(201, lambda: self.iconbitmap('_internal/Wineass-Ios7-Redesign-Calculator.ico'))
         # Switch
         self.switchDRValue = ctk.StringVar(value=DEGREES)
         self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self._onUpdateSwitch, 
                                     variable=self.switchDRValue, onvalue=RADIANS, offvalue=DEGREES)
-        self.switchDR.grid(padx=(12, 4), pady=4)
+        self.switchDR.grid(row=0, column=0, padx=(12, 4), pady=4)
         self.switchDR.deselect()
         # Input TextBox
         self.bInput = ctk.CTkEntry(master=self, font=('Calibry', FONT_SIZE_RESULT), justify='right', 
@@ -177,6 +178,18 @@ class Calculator(ctk.CTk):
         self.notificationToast = ctk.CTkEntry(master=self, width=220, height=40, font=('Calibry', 20), 
                                               placeholder_text='Copied to Clipboard', justify='center')
         self.notificationToast.configure(state=ctk.DISABLED)
+
+        self.combobox_var = ctk.StringVar(value="option 2")
+        self.comboInput = ctk.CTkComboBox(master=self, values=[""], command=self.combobox_callback, 
+                                          variable=self.combobox_var, height=32, font=('Calibry', 20), 
+                                          dropdown_font=('Calibry', 20), justify='right', hover=True)
+        self.combobox_var.set("option 2")
+        self.comboInput.grid(row=0, column=2, padx=4, pady=4, sticky="ew")
+        self.update()
+        print(self.comboInput.winfo_width())
+
+    def combobox_callback(self, choice):
+        print("combobox dropdown clicked:", choice)
 
     def start(self):
         self.mainloop()
