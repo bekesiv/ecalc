@@ -1,5 +1,9 @@
-echo off
+@echo off
 setlocal enabledelayedexpansion
+
+if "%1"=="/?" goto :ShowHelp
+if "%1"=="-h" goto :ShowHelp
+if "%1"=="--help" goto :ShowHelp
 
 set "package=customtkinter"
 call :GetPackageLocation
@@ -7,7 +11,17 @@ call :GetPackageLocation
 set "builddir=pyinstaller"
 mkdir "%builddir%"
 cd "%builddir%"
-pyinstaller --noconfirm --onedir --windowed --icon "../_internal/Wineass-Ios7-Redesign-Calculator.ico" --add-data "!location!/customtkinter;customtkinter/"  "../ecalc.py"
+
+set "upxDir="
+if "%~1" neq "" (
+    set "upxDir=--upx-dir=%1"
+)
+
+pyinstaller --noconfirm --onedir --windowed^
+ --icon "../_internal/Wineass-Ios7-Redesign-Calculator.ico"^
+ --add-data "!location!/customtkinter;customtkinter/"^
+ %upxDir% ^
+ "../ecalc.py"
 cd ..
 copy _internal\*.ico %builddir%\Dist\ecalc\_internal\
 echo Installer package is created in "%builddir%\dist\ecalc" directory
@@ -29,3 +43,9 @@ for /f "tokens=*" %%a in ('pip show !package! ^| findstr /i "Location:"') do (
 goto :EOF
 
 endlocal
+exit /b
+
+:ShowHelp
+echo Usage: myscript.bat [UPX_DIRECTORY]
+echo   UPX_DIRECTORY  Optional path to the UPX directory.
+exit /b
