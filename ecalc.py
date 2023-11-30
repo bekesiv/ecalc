@@ -6,6 +6,7 @@ from math import *
 import os
 import re
 
+APP_VERSION = '1.2.0'
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
@@ -99,7 +100,7 @@ class Calculator(ctk.CTk):
         ctk.set_appearance_mode('Dark')
         ctk.set_default_color_theme('blue')
         # Main Window
-        self.title('eCalc - 1.1.0')
+        self.title(f'eCalc - {APP_VERSION}')
         self.setGeometry()
         self.resizable(False, False)
         self.bind('<Escape>', lambda e, w=self: w.destroy())
