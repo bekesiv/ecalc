@@ -7,7 +7,7 @@ import os
 import re
 
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
-DEFAULT_POSITION = '500x176+300+600'
+DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
 DEGREES='Degrees'
 RADIANS='Radians'
@@ -23,7 +23,7 @@ class Input(ctk.CTkComboBox):
         self.configure(values=self.values, command=self.onDropdown, fg_color='#222222',
                        font=('Calibry', 16), dropdown_font=('Calibry', 16), 
                        justify='right', hover=True)
-        self.grid(row=0, column=1, padx=8, pady=8, sticky="ew")
+        self.grid(row=0, column=1, padx=8, pady=6, sticky="ew")
         self.bind('<KeyPress>', self.onKeyPress)
         self.bind('<KeyRelease>', self.onKeyRelease)
         self.set('')
@@ -61,7 +61,7 @@ class Result(ctk.CTkComboBox):
         self.configure(values=self.values, command=self.onDropdown, #height=32, 
                        font=('Calibry', 16), dropdown_font=('Calibry', 16), justify='right',
                        hover=True)
-        self.grid(row=row, column=1, padx=8, pady=8, sticky="ew")
+        self.grid(row=row, column=1, padx=8, pady=6, sticky="ew")
         self.bind('<KeyRelease>', self.onKeyEvent)
         self.bind('<KeyPress>', self.onKeyEvent)
         self.base = base
@@ -121,10 +121,6 @@ class Calculator(ctk.CTk):
         self.resultDec = Result(self, DECIMAL, 1)
         self.resultHex = Result(self, HEXADECIMAL, 2)
         self.resultBin = Result(self, BINARY, 3)
-        # Toast Notification
-        self.notification = ctk.CTkEntry(master=self, width=180, height=36, font=('Calibry', 16), 
-                                              placeholder_text='Copied to Clipboard', justify='center')
-        self.notification.configure(state=ctk.DISABLED)
 
     def start(self):
         self.mainloop()
@@ -139,16 +135,6 @@ class Calculator(ctk.CTk):
                 self.geometry(conf.readlines()[0])
         except:
                 self.geometry(DEFAULT_POSITION)
-
-    def copyToClipboard(self, content):
-        self.clipboard_clear()
-        self.clipboard_append(content)
-        self.update()
-        self.shownotification()
-
-    def shownotification(self):
-        self.notification.place(x=260, y=70)
-        self.notification.after(800, self.notification.place_forget)
 
     def onEnter(self):
         self.input.addHistory()
