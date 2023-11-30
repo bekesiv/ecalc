@@ -99,7 +99,7 @@ class Calculator(ctk.CTk):
         ctk.set_appearance_mode('Dark')
         ctk.set_default_color_theme('blue')
         # Main Window
-        self.title('eCalc')
+        self.title('eCalc - 1.1.0')
         self.setGeometry()
         self.resizable(False, False)
         self.bind('<Escape>', lambda e, w=self: w.destroy())
