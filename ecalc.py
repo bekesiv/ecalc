@@ -9,11 +9,11 @@ import re
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
 DEFAULT_POSITION = '500x176+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
-FONT_SIZE_RESULT = 20
-FONT_SIZE_HISTORY = 16
-FONT_SIZE_LABELS = 14
 DEGREES='Degrees'
 RADIANS='Radians'
+DECIMAL='Decimal'
+HEXADECIMAL='Hexadecimal'
+BINARY='Binary'
 
 
 class Input(ctk.CTkComboBox):
@@ -43,11 +43,10 @@ class Input(ctk.CTkComboBox):
             self.clearFlag = True
             self.master.flashWidgets()
         else:
-            self.clearFlag = False
             self.master.onChangeInput()
 
     def addHistory(self):
-        self.values.append(self.get())
+        self.values.insert(0, self.get())
         self.configure(values=self.values)
 
     def flash(self, duration=100):
@@ -78,14 +77,15 @@ class Result(ctk.CTkComboBox):
         self.master.onChangeInput(choice)
 
     def write(self, content):
+        if self.base != DECIMAL and content:
+            try:
+                content = hex(int(content)) if self.base == HEXADECIMAL else bin(int(content))
+            except:
+                content = 'error'
         self.set(content)
-        # try:
-        #     hexValue = hex(int(decValue))
-        # except:
-        #     hexValue = 'error'
 
     def addHistory(self):
-        self.values.append(self.get())
+        self.values.insert(0, self.get())
         self.configure(values=self.values)
 
     def flash(self, duration=100):
@@ -118,9 +118,9 @@ class Calculator(ctk.CTk):
         # Input
         self.input = Input(self)
         # Results
-        self.resultDec = Result(self, 'Decimal', 1)
-        self.resultHex = Result(self, 'Hexadecimal', 2)
-        self.resultBin = Result(self, 'Binary', 3)
+        self.resultDec = Result(self, DECIMAL, 1)
+        self.resultHex = Result(self, HEXADECIMAL, 2)
+        self.resultBin = Result(self, BINARY, 3)
         # Toast Notification
         self.notification = ctk.CTkEntry(master=self, width=180, height=36, font=('Calibry', 16), 
                                               placeholder_text='Copied to Clipboard', justify='center')
@@ -161,6 +161,7 @@ class Calculator(ctk.CTk):
         self.onChangeInput()
 
     def onChangeInput(self, value=None):
+        self.input.clearFlag = False
         if value:
              self.input.set(value)
         result = self.calculate(self.input.get())
