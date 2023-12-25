@@ -6,7 +6,7 @@ from math import *
 import os
 import re
 
-APP_VERSION = '1.2.0'
+APP_VERSION = '1.2.1'
 CONFIGURATION_FILENAME = f'{os.path.expanduser('~')}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
@@ -164,7 +164,7 @@ class Calculator(ctk.CTk):
         self.resultBin.flash()
 
     def calculate(self, formula):
-        retVal = formula.replace('^', '**')
+        retVal = formula.replace('^', '**').replace(',', '.')
         if formula:
             if self.switchDRValue.get() == DEGREES:
                 pattern = re.compile(r'(sin|cos|tan)\(([^)]+)\)')
