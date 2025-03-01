@@ -6,7 +6,7 @@ from math import *
 import os
 import re
 
-APP_VERSION = '1.2.1'
+APP_VERSION = '1.2.2'
 CONFIGURATION_FILENAME = f'{os.path.expanduser("~")}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
@@ -107,7 +107,8 @@ class Calculator(ctk.CTk):
         # self.grid_rowconfigure((0, 1, 2), weight=0)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
-        # self.after(201, lambda: self.iconbitmap('_internal/Wineass-Ios7-Redesign-Calculator.ico'))
+        # icon_path = os.path.join(os.path.dirname(__file__), '_internal', 'Wineass-Ios7-Redesign-Calculator.ico')
+        # self.after(201, lambda: self.iconbitmap(icon_path))
         # Switch
         self.switchDRValue = ctk.StringVar(value=DEGREES)
         self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self.onUpdateSwitch, font=('Calibry', 15),
