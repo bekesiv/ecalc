@@ -1,10 +1,11 @@
-#! /usr/bin/env python
-
-import customtkinter as ctk # type: ignore
-import ast
-from math import *
+#!/usr/bin/env python
 import os
 import re
+import ast
+from math import radians, sin, cos, tan
+import customtkinter as ctk # type: ignore
+if os.name == 'posix':
+    from PIL import Image, ImageTk
 
 APP_VERSION = '1.2.2'
 CONFIGURATION_FILENAME = f'{os.path.expanduser("~")}/ecalc.conf'
@@ -16,32 +17,31 @@ DECIMAL='Decimal'
 HEXADECIMAL='Hexadecimal'
 BINARY='Binary'
 
-
 class Input(ctk.CTkComboBox):
     def __init__(self, master):
         super().__init__(master)
         self.values = []
         self.configure(values=self.values, command=self.onDropdown, fg_color='#222222',
-                       font=('Calibry', 16), dropdown_font=('Calibry', 16), 
+                       font=('Calibry', 16), dropdown_font=('Calibry', 16),
                        justify='right', hover=True)
         self.grid(row=0, column=1, padx=8, pady=6, sticky="ew")
         self.bind('<KeyPress>', self.onKeyPress)
         self.bind('<KeyRelease>', self.onKeyRelease)
         self.set('')
-        self.clearFlag = False
+        self.clear_flag = False
         self.after(50, self.focus_set)
 
     def onDropdown(self, choice):
         self.master.onChangeInput()
 
     def onKeyPress(self, keypressed):
-        if keypressed.keysym != 'Return' and self.clearFlag:
+        if keypressed.keysym not in ('Return', 'KP_Enter') and self.clear_flag:
             self.set('')
 
     def onKeyRelease(self, keypressed):
-        if keypressed.keysym == 'Return':
+        if keypressed.keysym in ('Return', 'KP_Enter'):
             self.master.onEnter()
-            self.clearFlag = True
+            self.clear_flag = True
             self.master.flashWidgets()
         else:
             self.master.onChangeInput()
@@ -59,7 +59,7 @@ class Result(ctk.CTkComboBox):
     def __init__(self, master, base, row):
         super().__init__(master)
         self.values = []
-        self.configure(values=self.values, command=self.onDropdown, #height=32, 
+        self.configure(values=self.values, command=self.onDropdown, #height=32,
                        font=('Calibry', 16), dropdown_font=('Calibry', 16), justify='right',
                        hover=True)
         self.grid(row=row, column=1, padx=8, pady=6, sticky="ew")
@@ -81,7 +81,7 @@ class Result(ctk.CTkComboBox):
         if self.base != DECIMAL and content:
             try:
                 content = hex(int(content)) if self.base == HEXADECIMAL else bin(int(content))
-            except:
+            except ValueError:
                 content = 'error'
         self.set(content)
 
@@ -107,8 +107,9 @@ class Calculator(ctk.CTk):
         # self.grid_rowconfigure((0, 1, 2), weight=0)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
-        # icon_path = os.path.join(os.path.dirname(__file__), '_internal', 'Wineass-Ios7-Redesign-Calculator.ico')
-        # self.after(201, lambda: self.iconbitmap(icon_path))
+
+        self.setAppIcon()
+
         # Switch
         self.switchDRValue = ctk.StringVar(value=DEGREES)
         self.switchDR = ctk.CTkSwitch(master=self, text=DEGREES, command=self.onUpdateSwitch, font=('Calibry', 15),
@@ -128,15 +129,24 @@ class Calculator(ctk.CTk):
         self.mainloop()
 
     def saveWindowPosition(self, event):
-        with open(CONFIGURATION_FILENAME, "w") as conf:
+        with open(CONFIGURATION_FILENAME, "w", encoding="utf-8") as conf:
             conf.write(self.geometry())
+
+    def setAppIcon(self):
+        icon_path = os.path.join(os.path.dirname(__file__), '_internal', 'Wineass-Ios7-Redesign-Calculator')
+        if os.name == 'nt':
+            self.after(201, lambda: self.iconbitmap(icon_path + '.ico'))
+        elif os.name == 'posix':
+            im = Image.open(icon_path + '.png')
+            photo = ImageTk.PhotoImage(im)
+            self.iconphoto(True, photo)
 
     def setGeometry(self):
         try:
-            with open(CONFIGURATION_FILENAME, "r") as conf:
+            with open(CONFIGURATION_FILENAME, "r", encoding="utf-8") as conf:
                 self.geometry(conf.readlines()[0])
-        except:
-                self.geometry(DEFAULT_POSITION)
+        except FileNotFoundError:
+            self.geometry(DEFAULT_POSITION)
 
     def onEnter(self):
         self.input.addHistory()
@@ -149,9 +159,9 @@ class Calculator(ctk.CTk):
         self.onChangeInput()
 
     def onChangeInput(self, value=None):
-        self.input.clearFlag = False
+        self.input.clear_flag = False
         if value:
-             self.input.set(value)
+            self.input.set(value)
         result = self.calculate(self.input.get())
         self.resultDec.write((result))
         self.resultHex.write((result))
@@ -173,7 +183,7 @@ class Calculator(ctk.CTk):
                 retVal = pattern.sub(replacement, retVal)
             try:
                 retVal = eval(compile(ast.parse(retVal, mode='eval'), filename='', mode='eval'))
-            except:
+            except Exception:
                 retVal = 'error'
         return retVal
 
