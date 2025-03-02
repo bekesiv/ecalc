@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.2.2
+Exec=/usr/local/bin/ecalc
+Name=eCalc
+Terminal=false
+Icon=/usr/share/icons/ecalc.png
+Type=Application
+Categories=Accessories;
