@@ -8,7 +8,7 @@ if os.name == 'posix':
     from PIL import Image, ImageTk
 
 APP_TITLE = 'eCalc'
-APP_VERSION = '1.2.2'
+APP_VERSION = '1.2.3'
 CONFIGURATION_FILENAME = f'{os.path.expanduser("~")}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
@@ -94,6 +94,8 @@ class Result(ctk.CTkComboBox):
         self.configure(border_color='lightgrey', button_color='lightgrey')
         self.after(duration, lambda: self.configure(border_color=ORIGINAL_COLOR, button_color=ORIGINAL_COLOR))
 
+    def getValue(self, index):
+        return self.values[index - 1]
 
 class Calculator(ctk.CTk):
     def __init__(self):
@@ -183,6 +185,8 @@ class Calculator(ctk.CTk):
                 replacement = r'\1(radians(\2))'
                 retVal = pattern.sub(replacement, retVal)
             try:
+                pattern = re.compile(r'\$(\d+)')
+                retVal = pattern.sub(lambda match: self.resultDec.getValue(int(match.group(1))), retVal)
                 retVal = eval(compile(ast.parse(retVal, mode='eval'), filename='', mode='eval'))
             except Exception:
                 retVal = 'error'
