@@ -2,7 +2,9 @@
 Version=1.2.2
 Exec=/usr/local/bin/ecalc
 Name=eCalc
+Comment=Expression driven minimalistic calculator
 Terminal=false
 Icon=/usr/share/icons/ecalc.png
 Type=Application
 Categories=Accessories;
+StartupWMClass=eCalc.Ecalc

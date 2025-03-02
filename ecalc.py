@@ -7,6 +7,7 @@ import customtkinter as ctk # type: ignore
 if os.name == 'posix':
     from PIL import Image, ImageTk
 
+APP_TITLE = 'eCalc'
 APP_VERSION = '1.2.2'
 CONFIGURATION_FILENAME = f'{os.path.expanduser("~")}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
@@ -96,11 +97,11 @@ class Result(ctk.CTkComboBox):
 
 class Calculator(ctk.CTk):
     def __init__(self):
-        super().__init__()
+        super().__init__(className=APP_TITLE)
         ctk.set_appearance_mode('Dark')
         ctk.set_default_color_theme('blue')
         # Main Window
-        self.title(f'eCalc - {APP_VERSION}')
+        self.title(f'{APP_TITLE} - {APP_VERSION}')
         self.setGeometry()
         self.resizable(False, False)
         self.bind('<Escape>', lambda e, w=self: w.destroy())
