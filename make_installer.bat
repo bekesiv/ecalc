@@ -17,9 +17,10 @@ if "%~1" neq "" (
     set "upxDir=--upx-dir=%1"
 )
 
-pyinstaller --noconfirm --onedir --windowed^
+pyinstaller --noconfirm --onefile --windowed^
  --icon "../_internal/Wineass-Ios7-Redesign-Calculator.ico"^
  --add-data "!location!/customtkinter;customtkinter/"^
+ --add-data "../_internal/Wineass-Ios7-Redesign-Calculator.ico:_internal"^
  %upxDir% ^
  "../ecalc.py"
 cd ..
