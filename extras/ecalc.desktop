@@ -1,5 +1,5 @@
 [Desktop Entry]
-Version=1.2.2
+Version=1.2.5
 Exec=/usr/local/bin/ecalc
 Name=eCalc
 Comment=Expression driven minimalistic calculator

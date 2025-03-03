@@ -8,6 +8,7 @@ if "%1"=="--help" goto :ShowHelp
 set "package=customtkinter"
 call :GetPackageLocation
 
+cd ..
 set "builddir=pyinstaller"
 mkdir "%builddir%"
 cd "%builddir%"
@@ -18,13 +19,11 @@ if "%~1" neq "" (
 )
 
 pyinstaller --noconfirm --onefile --windowed^
- --icon "../_internal/Wineass-Ios7-Redesign-Calculator.ico"^
+ --icon "../icon/Wineass-Ios7-Redesign-Calculator.ico"^
  --add-data "!location!/customtkinter;customtkinter/"^
- --add-data "../_internal/Wineass-Ios7-Redesign-Calculator.ico:_internal"^
+ --add-data "../icon/Wineass-Ios7-Redesign-Calculator.ico:icon"^
  %upxDir% ^
  "../ecalc.py"
-cd ..
-copy _internal\*.ico %builddir%\Dist\ecalc\_internal\
 echo Installer package is created in "%builddir%\dist\ecalc" directory
 
 goto :EOF

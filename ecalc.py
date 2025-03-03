@@ -9,7 +9,7 @@ if os.name == 'posix':
     from PIL import Image, ImageTk
 
 APP_TITLE = 'eCalc'
-APP_VERSION = '1.2.4'
+APP_VERSION = '1.2.5'
 CONFIGURATION_FILENAME = f'{os.path.expanduser("~")}/ecalc.conf'
 DEFAULT_POSITION = '500x164+300+600'
 ORIGINAL_COLOR = ('#979DA2', '#565B5E')
@@ -137,7 +137,7 @@ class Calculator(ctk.CTk):
             conf.write(self.geometry())
 
     def setAppIcon(self) -> None:
-        icon_path = os.path.join(os.path.dirname(__file__), '_internal', 'Wineass-Ios7-Redesign-Calculator')
+        icon_path = os.path.join(os.path.dirname(__file__), 'icon', 'Wineass-Ios7-Redesign-Calculator')
         if os.name == 'nt':
             self.after(201, lambda: self.iconbitmap(icon_path + '.ico'))
         elif os.name == 'posix':
