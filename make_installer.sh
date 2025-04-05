@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo install -v -o root -g root -m 755 icon/ecalc.desktop /usr/share/applications/
-sudo install -v -o root -g root -m 644 icon/Wineass-Ios7-Redesign-Calculator.png to /usr/share/icons/ecalc.png
+sudo install -v -o root -g root -m 644 icon/Wineass-Ios7-Redesign-Calculator.png /usr/share/icons/ecalc.png
 sudo install -v
 
 mkdir -p .pyinstaller
