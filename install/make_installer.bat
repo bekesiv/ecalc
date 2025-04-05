@@ -23,7 +23,7 @@ pyinstaller --noconfirm --onefile --windowed^
  --add-data "!location!/customtkinter;customtkinter/"^
  --add-data "../icon/Wineass-Ios7-Redesign-Calculator.ico:icon"^
  %upxDir% ^
- "../ecalc.py"
+ "../src/ecalc.py"
 echo Installer package is created in "%builddir%\dist\ecalc" directory
 
 goto :EOF

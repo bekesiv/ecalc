@@ -137,7 +137,7 @@ class Calculator(ctk.CTk):
             conf.write(self.geometry())
 
     def setAppIcon(self) -> None:
-        icon_path = os.path.join(os.path.dirname(__file__), 'icon', 'Wineass-Ios7-Redesign-Calculator')
+        icon_path = os.path.join(os.path.dirname(__file__), '../icon', 'Wineass-Ios7-Redesign-Calculator')
         if os.name == 'nt':
             self.after(201, lambda: self.iconbitmap(icon_path + '.ico'))
         elif os.name == 'posix':
