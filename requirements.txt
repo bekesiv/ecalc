@@ -1,3 +1,2 @@
-tkinter
 customtkinter
 pillow; sys_platform != 'win32'
