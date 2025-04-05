@@ -18,8 +18,8 @@ pyinstaller \
     --hidden-import=pillow \
     --hidden-import='PIL._tkinter_finder' \
     --hidden-import=customtkinter \
-    --add-data 'icon/Wineass-Ios7-Redesign-Calculator.png:icon' \
-    --icon=icon/Wineass-Ios7-Redesign-Calculator.png \
-    src/ecalc.py
+    --add-data '../icon/Wineass-Ios7-Redesign-Calculator.png:icon' \
+    --icon=../icon/Wineass-Ios7-Redesign-Calculator.png \
+    ../src/ecalc.py
 
 sudo install -v -o root -g root -m 755 dist/ecalc /usr/local/bin/ecalc
