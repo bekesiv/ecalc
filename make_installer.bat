@@ -18,9 +18,9 @@ if "%~1" neq "" (
 )
 
 pyinstaller --noconfirm --onefile --windowed^
- --icon "../icon/Wineass-Ios7-Redesign-Calculator.ico"^
+ --icon "icon/Wineass-Ios7-Redesign-Calculator.ico"^
  --add-data "!location!/customtkinter;customtkinter/"^
- --add-data "../icon/Wineass-Ios7-Redesign-Calculator.ico:icon"^
+ --add-data "icon/Wineass-Ios7-Redesign-Calculator.ico:icon"^
  %upxDir% ^
  "src/ecalc.py"
 echo Installer package is created in "%builddir%\dist\ecalc" directory

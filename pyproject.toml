@@ -1,6 +1,6 @@
 [project]
 name = "ecalc"
-version = "1.2.7"
+version = "1.2.8"
 description = "Expression driven minimalistic calculator. Result is provided for every keyboard stroke."
 authors = [
     {name = "Viktor Bekesi",email = "viktor.bekesi@outlook.com"}
